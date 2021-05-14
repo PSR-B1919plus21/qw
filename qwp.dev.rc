@@ -2600,6 +2600,7 @@ function update_monster_array()
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
         end
+        travel.set_exclude(x,y,LOS)
         viewing_oklob = true
       end
       if is_candidate_for_attack(x, y) then
@@ -2675,9 +2676,9 @@ function update_monster_array()
           threat_range_dist = min(threat_range_dist, threat_dist)
           threat_range_speed = max(threat_range_speed, threat_speed)
           threat_range_hpct = threat_range_hpct + threat_hpct
-        else--if 1 --not m:is_safe() 
-          --and not view.feature_at(x/abs(x),y/abs(y)) == "deep_water"
-          --and not view.feature_at(x/abs(x),y/abs(y)) == "lava" then
+        elseif 1 --not m:is_safe() 
+          and not view.feature_at(0,0) == "deep_water"
+          and not view.feature_at(0,0) == "lava" then
           --say("MELEE: " .. m:name() .. " " .. x .. " " .. y)
           n_melee_threats = n_melee_threats + 1
           threat_melee = threat_melee + threat_level
@@ -4599,9 +4600,9 @@ function plan_threat_flee_step()
       --panic("plan_threat_flee_step:" .. best_x .. best_y)
       step = delta_to_vi(best_x,best_y)
       say("THREAT FLEE STEP:" .. step)
-      --if (you.turns() >= last_flee_turn+10) then
-      last_flee_turn = you.turns()
-      --end
+      if (you.turns() >= last_flee_turn+10) then
+        last_flee_turn = you.turns()
+      end
       set_stair_target(step)
       magic(step)
       return true
