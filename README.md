@@ -1,3 +1,27 @@
+# qwp
+
+This is a version of the bot under development by me. I called it 'qwp' for a few fun reasons:
+* The postfix notations ++/+/pp/p are common ways of denoting incremental progress in programming.
+* It makes the word symmetric with the 'p' mirroring the 'q', and kind of looks like a little face.
+* It allows a fun phonetic pronunciation: "qwip".
+
+I am not a strong crawl player, not nearly as strong as most, and I think much of success in crawl can be summarized as, 
+a) avoid getting into dangerous situations, and
+b) know when to get out of a dangerous situation
+What I lack in Crawl skill, I make up for with expertise in artificial intelligence and machine learning. After watching the bot play for a while, I think it does a surprising amount of things really well, but it struggles to make sense of the game board (e.g. monsters, features, and terrain in view) in a way that is generic, consistent, and accessible to of decision making logic, instead relying on a lot of individual heuristics embedded within each action.
+
+If I were to approach this as a research project I would be anxious to create a lot of vector representations of various game states and feed them into some fancy deep learning model, but I think that is both less fun and kind of overkill. I am more interested in building a system that allows a "player" to sort of specify a character build and play style then see how the bot does. That sounds more fun to me as a player, letting me make high level strategic decisions and see if I can 
+
+Anyways, with all that in mind I have a I have a few main design goals:
+1. Build a generic board state evaluation framework
+- A first pass at this is already in place in the form of a "threat model" which calculates current visible melee/ranged threats, which is then used by kiting/buffing/escape logic.
+- The board state model should provide a lot of options for strengthening the bot's skill at (a) and (b) above.
+2. Overhaul the "plan" system into a "gambit" system which essentially adds a priority component to the plans. An implicit priority value for plans already exists in the form of their list ordering, but by adding explicit priorities we can then define separate collections of plans/gambits and then merge them into a single plan list for the bot to execute. This also makes the next goal much easier...
+3. Modularize the gambit collections for different religions, backgrounds, and playstyles. Refactor existing plan/gambit code to use a common structure, with the goal of making gambit definitions more accessible to people who want to use the bot and roll their own strategies.
+4. Build a casting framework and gambit model. This is a big lift and has been deliberately avoided in past development, for good reason. It would really advance the bot's potential in a lot of ways though, and I am cautiously optimistic that it could be feasible with the improvements in the lua API over the years and some inspiration from ToME4's Automatic Talent Gambits (https://te4.org/games/addons/tome/auto-talent-gambits).
+
+I am not a developer so my code is pretty sloppy and hacky, I will do my best to try and clean things up regularly but no promises. I also can't promise this project won't be abandonded once something more interesting comes along.
+
 # qw
 
 This rcfile is elliptic's DCSS bot "qw", the first bot to win DCSS with no
