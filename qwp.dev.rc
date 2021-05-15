@@ -4847,7 +4847,7 @@ function want_to_finesse()
   if danger and hp_is_low(75) and not you.teleporting() and not you.status("finesse") then
     return true
   end
-  if (threat_total > 20 or (hp_is_low(70) and threat_total > 1))
+  if (threat_total > 20 or (hp_is_low(80) and threat_total > 1))
     and not you.status("finesse") then
     return true
   end
