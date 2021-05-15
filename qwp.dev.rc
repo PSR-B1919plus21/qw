@@ -4518,18 +4518,18 @@ function plan_threat_flee_step()
   --  return read_by_name("fog")
   --end
 
-  if hp_is_low(40) and threat_total > 40
-    or hp_is_low(20) and threat_total > 20
-    or hp_is_low(10) and threat_total > 10 then
+  if hp_is_low(40) and threat_total > 20
+    or hp_is_low(20) and threat_total > 10
+    or hp_is_low(10) and threat_total > 5 then
     r = heal_wounds()
     if r then
       return r
     end
   end
 
-  if (hp_is_low(60) and threat_total > 40 and where ~= "Vaults:5")
-    or hp_is_low(40) and threat_total > 20 
-    or hp_is_low(20) and threat_total > 10 then
+  if (hp_is_low(60) and threat_total > 20 and where ~= "Vaults:5")
+    or hp_is_low(40) and threat_total > 10 
+    or hp_is_low(20) and threat_total > 5 then
     if can_teleport() then
       r = teleport()
       if r then
@@ -4538,9 +4538,9 @@ function plan_threat_flee_step()
     end
   end
 
-  if hp_is_low(60) and threat_total > 40
-    or hp_is_low(40) and threat_total > 20
-    or hp_is_low(20) and threat_total > 10 then
+  if hp_is_low(60) and threat_total > 20
+    or hp_is_low(40) and threat_total > 10
+    or hp_is_low(20) and threat_total > 5 then
     r = heal_wounds()
     if r then
       return r
@@ -4847,7 +4847,7 @@ function want_to_finesse()
   if danger and hp_is_low(75) and not you.teleporting() and not you.status("finesse") then
     return true
   end
-  if (threat_total > 20 or (hp_is_low(80) and threat_total > 1))
+  if (threat_total > 10 or (hp_is_low(90) and threat_total > 1))
     and not you.status("finesse") then
     return true
   end
