@@ -25,11 +25,11 @@
 # * nowater - does Snake/Spider first
 # * smart - currently prefers Spider > Snake/Swamp > Shoals
 # * dsmart - Swamp/Spider > Snake > Shoals (DsBe data)
-: RUNE_PREFERENCE = "smart"
+: RUNE_PREFERENCE = "gsmart"
 
 # plan for post-V:5, should end with zot
 # maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
-: ENDGAME_PLAN = "elf,tomb,zig,zot"
+: ENDGAME_PLAN = "elf,tomb,zot"
 
 # depth to attempt to dive in ziggurats
 : ZIG_DIVE = 5
@@ -2626,14 +2626,16 @@ function update_monster_array()
       end
 
       if m and you.see_cell_no_trans(x, y) 
-        --and you.see_cell_solid(x, y) 
+        and you.see_cell_solid(x, y) 
         and not (m:is_constricted() or m:is_caught()
                   or m:status("petrified")
                   or m:status("paralysed")
                   or m:desc():find("sleeping")
                   or (m:is_stationary() and you.xl() > 20)
                   or (view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		  or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
+         		  or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
+         		  or (view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
+         		  or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
         and m:attitude() < 1 then
  
         threat_level = m:threat()
@@ -2676,9 +2678,9 @@ function update_monster_array()
           threat_range_dist = min(threat_range_dist, threat_dist)
           threat_range_speed = max(threat_range_speed, threat_speed)
           threat_range_hpct = threat_range_hpct + threat_hpct
-        elseif 1 --not m:is_safe() 
-          and not view.feature_at(0,0) == "deep_water"
-          and not view.feature_at(0,0) == "lava" then
+        else --if 1 --not m:is_safe() 
+          --and not view.feature_at(0,0) == "deep_water"
+          --and not view.feature_at(0,0) == "lava" then
           --say("MELEE: " .. m:name() .. " " .. x .. " " .. y)
           n_melee_threats = n_melee_threats + 1
           threat_melee = threat_melee + threat_level
@@ -3002,15 +3004,16 @@ function get_monster_info(dx, dy)
   info.orc_priest_wizard = (name == "orc priest" or
                             name == "orc high priest" or
                             name == "orc wizard") and 1 or 0
+  info.not_summoned = (not m:is("summoned")) and 1 or 0
   return info
 end
 
 function compare_monster_info(m1, m2)
-  flag_order = {"can_attack", "safe", "distance", "constricting_you",
+  flag_order = {"can_attack", "safe", "distance", "not_summoned", "constricting_you",
                 "very_stabbable", "injury", "threat", "orc_priest_wizard"}
   -- hackety hack 
   if where:find("Vaults:5") then
-    flag_order = {"can_attack", "safe", "constricting_you",
+    flag_order = {"can_attack", "safe", "not_summoned", "constricting_you",
                 "very_stabbable", "injury", "threat", "orc_priest_wizard", "distance"}
   end
   for i, flag in ipairs(flag_order) do
@@ -3579,7 +3582,10 @@ end
 
 -- are we significantly stronger than usual thanks to a buff that we used?
 function buffed()
-  if you.depth_fraction() > 0.99 then --hackety hack
+  --if you.depth_fraction() > 0.99 then --hackety hack
+  --  return false
+  --end
+  if where:find("Zot") then
     return false
   end
   if transformed() or you.corrosion() >= 2 then
@@ -4073,11 +4079,15 @@ function plan_haste()
 end
 
 function plan_might()
+  if you.status("might") then
+    return false
+  end
   --hackety hack
   --if not you.teleporting() and hp_is_low(20) and monsters_in_view > 0 then
   --  return might()
   --end
-  if not you.teleporting() and threat_total > 5 and hp_is_low(20) then
+  if not you.teleporting() and threat_total > 5 
+    and (hp_is_low(20) or (hp_is_low(60) and not buffed())) then
     return might()
   end
   if want_to_serious_buff() then
@@ -4236,7 +4246,8 @@ function step_reason(a1,a2)
          and a2.stair_closer < 10000 and a1.stair_closer > 0
          and a1.enemy_distance < 10
          --and monsters_reachable > 0 -- hackety hack
-         and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
+         --and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
+         and (viewing_oklob or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
   
@@ -4504,6 +4515,14 @@ function plan_threat_flee_step()
   --  and hp_is_low(50) then
   --  return read_by_name("fog")
   --end
+
+  if hp_is_low(20) and threat_total > 20
+    or hp_is_low(10) and threat_total > 10 then
+    r = heal_wounds()
+    if r then
+      return r
+    end
+  end
 
   if hp_is_low(40) and threat_total > 20 
     or hp_is_low(20) and threat_total > 10 then
@@ -6191,7 +6210,7 @@ function want_to_stairdance_up()
     return false
   end
   if follow_count == 0 and (reason_to_rest(90) or you.status("barbed spikes"))
-     and not buffed() --hackety hack hack
+     --and not buffed() --hackety hack hack
      or other_count > 0 and follow_count > 0 then
     stairdance_count[where] = n + 1
     return true
@@ -6800,6 +6819,8 @@ function choose_lair_rune_branch()
     else
       branch_options = { "S", "N", "P", "A" }
     end
+  elseif RUNE_PREFERENCE == "gsmart" then
+    branch_options = { "P", "A", "S", "N" }
   elseif RUNE_PREFERENCE == "nowater" then
     branch_options = { "P", "N", "S", "A" }
   else -- "random"
@@ -9057,6 +9078,9 @@ function ttt()
 
   say("STATUS: " .. game_status)
   say("WHERE: " .. where)
+  if travel_destination ~= nil then
+    say("DEST: " .. travel_destination)
+  end
 
   ---print_stair_dists()
 end
