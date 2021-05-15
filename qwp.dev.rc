@@ -25,7 +25,7 @@
 # * nowater - does Snake/Spider first
 # * smart - currently prefers Spider > Snake/Swamp > Shoals
 # * dsmart - Swamp/Spider > Snake > Shoals (DsBe data)
-: RUNE_PREFERENCE = "smart"
+: RUNE_PREFERENCE = "nowater"
 
 # plan for post-V:5, should end with zot
 # maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
@@ -3925,7 +3925,11 @@ function plan_cure_bad_poison()
     return false
   end
   -- hackety hack
-  if you.teleporting() and hp_is_low(20) and threat_total > 0 and you.transform() ~= "pig" then
+  if you.teleporting() 
+    and you.xl() < 20
+    and hp_is_low(20) 
+    and threat_total > 0 
+    and you.transform() ~= "pig" then
     return drink_by_name("curing")
   end
   if you.poison_survival() <= chp() - 60 then
@@ -4634,10 +4638,16 @@ function plan_threat_flee_step()
       return true
     end
   end
-  if threat_total > 40 
-    and view.cloud_at(0,0) == nil
-    and hp_is_low(50) then
-    return read_by_name("fog")
+  if threat_total > 20 
+    and hp_is_low(40) then
+    if view.cloud_at(0,0) == nil then
+      r = read_by_name("fog")
+      if r then
+        return r
+      else
+        return haste()
+      end
+    end
   end
   return false
 end
