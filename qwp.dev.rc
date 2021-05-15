@@ -8130,6 +8130,8 @@ end
 ----------------------------------------
 -- cascading plans: this is the bot's flowchart for using the above plans
 
+local last_delay = 0
+
 function cascade(plans)
   local plan_turns = {}
   local plan_result = {}
@@ -8147,7 +8149,8 @@ function cascade(plans)
           if SINGLE_STEP or SINGLE_ATK_STEP or hp_is_low(SINGLE_HP_STEP) or monsters_in_view > SINGLE_LOS_STEP then
             say(plandata[2])
           end
-          if (DELAYED and result == true) or (you.turns() % 1000 >= 0 and you.turns() % 1000 <= 1) then
+          if (DELAYED and result == true) or (you.turns() >= last_delay+1000) then
+            last_delay = you.turns()
             crawl.delay(next_delay)
           end
           next_delay = DELAY_TIME
