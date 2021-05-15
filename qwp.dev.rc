@@ -3,7 +3,7 @@
 
 ###############################################################################
 
-: DELAYED = false
+: DELAYED = true
 # Delay per action in milliseconds.
 # Set this to at least 100 or so when playing online.
 : DELAY_TIME = 10
@@ -3923,7 +3923,7 @@ function plan_cure_bad_poison()
     return false
   end
   -- hackety hack
-  if you.teleporting() and hp_is_low(20) and threat_total > 0 then
+  if you.teleporting() and hp_is_low(20) and threat_total > 0 you.transform() ~= "pig" then
     return drink_by_name("curing")
   end
   if you.poison_survival() <= chp() - 60 then
@@ -4525,7 +4525,7 @@ function plan_threat_flee_step()
     end
   end
 
-  if hp_is_low(60) and threat_total > 40
+  if (hp_is_low(60) and threat_total > 40 and where ~= "Vaults:5")
     or hp_is_low(40) and threat_total > 20 
     or hp_is_low(20) and threat_total > 10 then
     if can_teleport() then
@@ -7324,6 +7324,11 @@ end
 
 function plan_stuck()
   stuck_turns = stuck_turns + 1
+
+  if stuck_turns > QUIT_TURNS/10 then
+    magic("X" .. control('e'))
+  end
+
   if stuck_turns > QUIT_TURNS then
     panic("WANT TO QUIT!")
     --magic(control('q') .. "yes\r")
