@@ -3923,7 +3923,7 @@ function plan_cure_bad_poison()
     return false
   end
   -- hackety hack
-  if you.teleporting() and hp_is_low(20) and threat_total > 0 you.transform() ~= "pig" then
+  if you.teleporting() and hp_is_low(20) and threat_total > 0 and you.transform() ~= "pig" then
     return drink_by_name("curing")
   end
   if you.poison_survival() <= chp() - 60 then
