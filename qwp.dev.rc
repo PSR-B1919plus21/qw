@@ -902,7 +902,9 @@ function slime_soon()
 end
 
 function in_extended()
-  return (game_status == "pan" or game_status == "hells" or game_status == "tomb")
+  --hackety hack
+  return (game_status == "pan" or game_status == "hells")
+  --return (game_status == "pan" or game_status == "hells" or game_status == "tomb")
 end
 
 -- list of armour slots, this is used to normalize names for them and also
