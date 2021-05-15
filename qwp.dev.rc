@@ -2592,7 +2592,7 @@ function update_monster_array()
     for y = -LOS,LOS do
       m = monster.get_monster_at(x, y)
       monster_array[x][y] = m
-      if m ~= nil and m:name() == "electric eel" and where:find("Lair") then
+      if m ~= nil and m:name() == "electric eel" and where:find("Lair") and not feat_is_upstairs(view.feature_at(0,0)) then
         --magic("x" .. delta_to_vi(x,y) .. "e")
         travel.set_exclude(x,y,LOS)
       end
@@ -2600,7 +2600,9 @@ function update_monster_array()
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
         end
-        travel.set_exclude(x,y,LOS)
+        if not feat_is_upstairs(view.feature_at(0,0)) then
+          travel.set_exclude(x,y,LOS)
+        end
         viewing_oklob = true
       end
       if is_candidate_for_attack(x, y) then
