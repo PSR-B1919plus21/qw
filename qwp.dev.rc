@@ -9196,9 +9196,9 @@ function c_answer_prompt(prompt)
   if prompt:find("Enter next level anyway?") then
     return true
   end
-  --if prompt:find("a travel-excluded area") then
-  --  return false
-  --end
+  if prompt:find("a travel-excluded area") then
+    return true
+  end
   --if prompt:find("The barbs in your skin will harm you if you move") then
   --  return false
   --end
