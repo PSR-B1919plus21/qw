@@ -4518,9 +4518,9 @@ function plan_threat_flee_step()
   --  return read_by_name("fog")
   --end
 
-  if hp_is_low(40) and threat_total > 20
-    or hp_is_low(20) and threat_total > 10
-    or hp_is_low(10) and threat_total > 5 then
+  if hp_is_low(40) and threat_total > 10
+    or hp_is_low(20) and threat_total > 5
+    or hp_is_low(10) and threat_total > 1 then
     r = heal_wounds()
     if r then
       return r
