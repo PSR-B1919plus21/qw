@@ -3,7 +3,7 @@
 
 ###############################################################################
 
-: DELAYED = true
+: DELAYED = false
 # Delay per action in milliseconds.
 # Set this to at least 100 or so when playing online.
 : DELAY_TIME = 10
@@ -40,14 +40,14 @@
 : BURN_BOOKS = true
 
 # enable certain somewhat spammy notes
-: SPAM = true
+: SPAM = false
 
 # tab just takes a single action (for testing)
 : SINGLE_STEP = false
 : SINGLE_ATK_STEP = false
 : SINGLE_HP_STEP = -100
 : SINGLE_LOS_STEP = 1000
-: STOP_ON_WIN = true
+: STOP_ON_WIN = false
 
 # panic (stop) at full inventory
 : FULL_INVENTORY_PANIC = true
@@ -4516,7 +4516,8 @@ function plan_threat_flee_step()
   --  return read_by_name("fog")
   --end
 
-  if hp_is_low(20) and threat_total > 20
+  if hp_is_low(40) and threat_total > 40
+    or hp_is_low(20) and threat_total > 20
     or hp_is_low(10) and threat_total > 10 then
     r = heal_wounds()
     if r then
@@ -4524,7 +4525,8 @@ function plan_threat_flee_step()
     end
   end
 
-  if hp_is_low(40) and threat_total > 20 
+  if hp_is_low(60) and threat_total > 40
+    or hp_is_low(40) and threat_total > 20 
     or hp_is_low(20) and threat_total > 10 then
     if can_teleport() then
       r = teleport()
@@ -4534,7 +4536,8 @@ function plan_threat_flee_step()
     end
   end
 
-  if hp_is_low(40) and threat_total > 20
+  if hp_is_low(60) and threat_total > 40
+    or hp_is_low(40) and threat_total > 20
     or hp_is_low(20) and threat_total > 10 then
     r = heal_wounds()
     if r then
@@ -4618,7 +4621,9 @@ function plan_threat_flee_step()
     if not (best_x == 0 and best_y == 0) then
       --panic("plan_threat_flee_step:" .. best_x .. best_y)
       step = delta_to_vi(best_x,best_y)
-      say("THREAT FLEE STEP:" .. step)
+      if SPAM then
+        say("THREAT FLEE STEP:" .. step)
+      end
       if (you.turns() >= last_flee_turn+10) then
         last_flee_turn = you.turns()
       end
@@ -7320,8 +7325,8 @@ end
 function plan_stuck()
   stuck_turns = stuck_turns + 1
   if stuck_turns > QUIT_TURNS then
-    --panic("QUITTING!")
-    magic(control('q') .. "yes\r")
+    panic("WANT TO QUIT!")
+    --magic(control('q') .. "yes\r")
     return true
   end
   return random_step("stuck")
