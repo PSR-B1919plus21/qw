@@ -29,7 +29,11 @@
 
 # plan for post-V:5, should end with zot
 # maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
+<<<<<<< HEAD
 : ENDGAME_PLAN = "elf,crypt,zot"
+=======
+: ENDGAME_PLAN = "zot"
+>>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
 
 # depth to attempt to dive in ziggurats
 : ZIG_DIVE = 5
@@ -61,7 +65,7 @@
 : SHIELD_CRAZY = true
 
 -- hackety hack hack
-: BASE_RISK_SCALE = 1.00
+: BASE_RISK_SCALE = 1.20
 : EARLY_RISK_SCALE = 1.00
 : END_RISK_SCALE = 1.00
 
@@ -71,7 +75,7 @@
 # gods who have been at least partially implemented: BCHLMOQRTUXY1
 # gods who are actually pretty decent on qw: CMORT
 # : GOD_LIST = { "Trog", }
-: GOD_LIST = { "Okawaru", }
+: GOD_LIST = { "Makhleb", }
 # use faded altar, abandoning if we don't get one of the gods in GOD_LIST
 : FADED_ALTAR = false
 
@@ -85,7 +89,7 @@
 # Choose randomly between these combos. This will not apply if the COMBO_CYCLE
 # option was on in your _previous_ game.
 # combo = GrBe.handaxe
-combo = GrFi.waraxe
+combo = DDFi.waraxe
 
 ###############################################################################
 
@@ -144,6 +148,7 @@ auto_exclude += ice statue
 auto_exclude += orange crystal statue
 auto_exclude += charred statue
 auto_exclude += obsidian statue
+auto_exclude += lightning spire
 --auto_exclude += oklob sapling
 auto_exclude += Roxanne
 hp_warning = 0
@@ -2592,11 +2597,19 @@ function update_monster_array()
       --  --magic("x" .. delta_to_vi(x,y) .. "e")
       --  travel.set_exclude(x,y,LOS)
       --end
+<<<<<<< HEAD
       if m and m:name() == "oklob plant" and (where ~= "Swamp:4") and you.see_cell_solid_see(x,y) then -- hackety hack hackety
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
         end
         if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") then
+=======
+      if m and m:name() == "oklob plant" and (where ~= "Swamp:4") then -- hackety hack hackety
+        if SPAM then
+          say("FOUND AN OKLOB PLANT!")
+        end
+        if not feat_is_upstairs(view.feature_at(0,0)) and where:find("Lair") then
+>>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
           travel.set_exclude(x,y,LOS)
         end
         viewing_oklob = true
@@ -2624,7 +2637,11 @@ function update_monster_array()
       end
 
       if m and you.see_cell_no_trans(x, y) 
+<<<<<<< HEAD
         and you.see_cell_solid(x, y)
+=======
+        and you.see_cell_solid(x, y) 
+>>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
         and not (m:name() == "oklob plant" and you.see_cell_solid_see(x,y))
         and not (m:is_constricted() or m:is_caught()
                   or m:status("petrified")
@@ -2664,6 +2681,10 @@ function update_monster_array()
         threat_hpct = 1.0-(m:damage_level()/6)
         threat_dist = supdist(x, y)
         threat_speed = mon_speed_num(m)/player_speed_num()
+
+        if you.race() == "Deep Dwarf" then
+          threat_speed = 100*threat_speed / you.depth_fraction()
+        end
 
         has_ranged = m:has_known_ranged_attack()
         has_spells = #m:spells() > 0
@@ -3031,7 +3052,7 @@ function is_candidate_for_attack(x, y, no_untabbable)
   if not m or m:attitude() > ATT_NEUTRAL then
     return false
   end
-  if m:name() == "butterfly" or (m:name() == "not oklob plant" and where ~= "Swamp:4") --hackety hack hack
+  if m:name() == "butterfly" --or (m:name() == "oklob plant" and where ~= "Swamp:4") --hackety hack hack
       or m:name() == "orb of destruction" then
     return false
   end
@@ -4114,12 +4135,17 @@ function plan_orbrun_finesse()
   return false
 end
 
-function heal_wounds()
-  if you.race() == "Deep Dwarf" and you.xl() < 15
-     and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
-     and dd_heal_ability() then
-    dd_hw_meter = dd_hw_meter + 100
-    return true
+function heal_wounds(allow_dd)
+  if allow_dd == nil then
+    allow_dd = true
+  end
+  if allow_dd then
+    if you.race() == "Deep Dwarf" and you.xl() < 15
+      and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
+      and dd_heal_ability() then
+      dd_hw_meter = dd_hw_meter + 100
+      return true
+    end
   end
   if you.mutation("no potion heal") < 3
      and drink_by_name("heal wounds") then
@@ -4323,9 +4349,8 @@ function step_reason(a1,a2)
     return false
   elseif a1.adjacent == 1 then
     return false
-  --elseif (a2.stair_closer < a1.stair_closer) 
-  --  and (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) then
-  --  return "outnumbered"
+  elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) then
+    return "outnumbered"
   else
     return false
   end
@@ -4523,7 +4548,7 @@ function plan_threat_flee_step()
   if hp_is_low(40) and threat_total > 10
     or hp_is_low(20) and threat_total > 5
     or hp_is_low(10) and threat_total > 1 then
-    r = heal_wounds()
+    r = heal_wounds(false)
     if r then
       return r
     end
@@ -4543,7 +4568,7 @@ function plan_threat_flee_step()
   if hp_is_low(60) and threat_total > 20
     or hp_is_low(40) and threat_total > 10
     or hp_is_low(20) and threat_total > 5 then
-    r = heal_wounds()
+    r = heal_wounds(false)
     if r then
       return r
     end
@@ -6264,7 +6289,7 @@ function plan_stairdance_up()
     say("STAIRDANCE")
     --hackety hack
     if hp_is_low(10) and (threat_melee_dist < 2 or threat_range > 1) then
-      r = heal_wounds()
+      r = heal_wounds(false)
       if r then
         return r
       end
@@ -9161,7 +9186,7 @@ function print_stair_dists()
 end
 
 function c_trap_is_safe(trap)
-  return (trap ~= "permanent teleport")
+  return (trap ~= "permanent teleport" and trap ~= "dispersal")
 end
 
 function c_answer_prompt(prompt)
