@@ -29,7 +29,7 @@
 
 # plan for post-V:5, should end with zot
 # maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
-: ENDGAME_PLAN = "elf,tomb,zot"
+: ENDGAME_PLAN = "elf,crypt,zot"
 
 # depth to attempt to dive in ziggurats
 : ZIG_DIVE = 5
@@ -122,7 +122,7 @@ combo = GrFi.waraxe
 #####################################
 # miscellaneous simple options
 
-name = PSRb1919plus21
+name = qwp
 restart_after_game = true
 
 bold_brightens_foreground = true
@@ -879,13 +879,9 @@ function update_game_status()
          and not where:find("Dis") and not where:find("Geh")
          and not where:find("Coc") and not where:find("Tar")
          and not where:find("Abyss")
-      --hackety hack
-      -- or game_status == "tomb" and you.have_rune("golden")
-      or game_status == "tomb" and travel.find_deepest_explored("Tomb") > 0
-      --   and not where:find("Tomb")
-      --   and not where:find("Abyss")
-      -- hackety hack
-      or game_status == "elf" and travel.find_deepest_explored("Elf") >= 3 and not where:find("Elf")
+      or game_status == "tomb" and you.have_rune("golden")
+      or game_status == "elf" and travel.find_deepest_explored("Elf") >= 3 and not where:find("Elf") -- hackety hack
+      or game_status == "crypt" and travel.find_deepest_explored("Crypt") >= 3 and not where:find("Crypt") -- hackety hack
       or game_status == "tso" and you.god() == "the Shining One"
       or game_status == "zig" and c_persist.entered_zig and not where:find("Zig") do
     which_endgame_plan = which_endgame_plan + 1
@@ -902,7 +898,7 @@ function slime_soon()
 end
 
 function in_extended()
-  return (game_status == "pan" or game_status == "hells" or game_status == "tomb")
+  return (game_status == "pan" or game_status == "hells" or game_status == "crypt" or game_status == "tomb")
 end
 
 -- list of armour slots, this is used to normalize names for them and also
@@ -2592,15 +2588,15 @@ function update_monster_array()
     for y = -LOS,LOS do
       m = monster.get_monster_at(x, y)
       monster_array[x][y] = m
-      if m ~= nil and m:name() == "electric eel" and where:find("Lair") and not feat_is_upstairs(view.feature_at(0,0)) then
-        --magic("x" .. delta_to_vi(x,y) .. "e")
-        travel.set_exclude(x,y,LOS)
-      end
-      if m and m:name() == "oklob plant" and (where ~= "Swamp:4") then -- hackety hack hackety
+      --if m ~= nil and m:name() == "electric eel" and where:find("Lair") and not feat_is_upstairs(view.feature_at(0,0)) then
+      --  --magic("x" .. delta_to_vi(x,y) .. "e")
+      --  travel.set_exclude(x,y,LOS)
+      --end
+      if m and m:name() == "oklob plant" and (where ~= "Swamp:4") and you.see_cell_solid_see(x,y) then -- hackety hack hackety
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
         end
-        if not feat_is_upstairs(view.feature_at(0,0)) then
+        if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") then
           travel.set_exclude(x,y,LOS)
         end
         viewing_oklob = true
@@ -2628,7 +2624,8 @@ function update_monster_array()
       end
 
       if m and you.see_cell_no_trans(x, y) 
-        and you.see_cell_solid(x, y) 
+        and you.see_cell_solid(x, y)
+        and not (m:name() == "oklob plant" and you.see_cell_solid_see(x,y))
         and not (m:is_constricted() or m:is_caught()
                   or m:status("petrified")
                   or m:status("paralysed")
@@ -2637,7 +2634,8 @@ function update_monster_array()
                   or (view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
          		  or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
          		  or (view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		  or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
+         		  or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
+              or (view.feature_at(x-dir_x,y-dir_y) == "floor" and m:name() == 'electric eel'))
         and m:attitude() < 1 then
  
         threat_level = m:threat()
@@ -4253,7 +4251,7 @@ function step_reason(a1,a2)
          and a1.enemy_distance < 10
          --and monsters_reachable > 0 -- hackety hack
          --and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
-         and (viewing_oklob or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
+         and ((viewing_oklob and not where:find("Zot")) or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
   
@@ -6911,11 +6909,16 @@ function plan_new_travel()
       travel_destination = "C"
     elseif game_status == "elf" then
       travel_destination = "E"
+    elseif game_status == "crypt" then
+      travel_destination = "C"
     else
       travel_destination = "D"
     end
   end
   if where == "Elf:3" and travel.find_deepest_explored("Elf") >= 3 then
+    travel_destination = "D"
+  end
+  if where == "Crypt:3" and travel.find_deepest_explored("Crypt") >= 3 then
     travel_destination = "D"
   end
   if where == "Slime:5" and you.have_rune("slimy") then
@@ -6932,6 +6935,8 @@ function plan_new_travel()
         travel_destination = "L"
       elseif game_status == "elf" then
         travel_destination = "E"
+      elseif game_status == "crypt" then
+        travel_destination = "C"
       elseif game_status == "tomb" then
         travel_destination = "V"
       else
@@ -7338,13 +7343,17 @@ end
 function plan_stuck()
   stuck_turns = stuck_turns + 1
 
+  if you.transform() == "tree" then
+    return plan_wait()
+  end
+
   if stuck_turns > QUIT_TURNS/10 then
     magic("X" .. control('e'))
   end
 
   if stuck_turns > QUIT_TURNS then
-    panic("WANT TO QUIT!")
-    --magic(control('q') .. "yes\r")
+    --panic("WANT TO QUIT!")
+    magic(control('q') .. "yes\r")
     return true
   end
   return random_step("stuck")
