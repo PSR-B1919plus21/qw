@@ -1,133 +1,7 @@
 ### PSRb1919plus21
-### qwp-dev.20210513
+### qwp.20210513
 
 ###############################################################################
-
-: DELAYED = true
-# Delay per action in milliseconds.
-# Set this to at least 100 or so when playing online.
-: DELAY_TIME = 10
-
-# whether to start playing immediately when a new game is started
-# unfortunately this doesn't work if the game starts with a -more-
-: AUTO_START = true
-
-###############################################################################
-
-# experimental: do second lair rune branch before depths
-: EARLY_SECOND_RUNE = false
-
-# experimental: wait to do Orc until after D:15
-: LATE_ORC = false
-
-# lair rune preferences, current options are:
-# * random - no preference, chooses randomly
-# * nowater - does Snake/Spider first
-# * smart - currently prefers Spider > Snake/Swamp > Shoals
-# * dsmart - Swamp/Spider > Snake > Shoals (DsBe data)
-: RUNE_PREFERENCE = "nowater"
-
-# plan for post-V:5, should end with zot
-# maximal example: "tso,tomb,hells,pan,slime,abyss,zig,zot"
-<<<<<<< HEAD
-: ENDGAME_PLAN = "elf,crypt,zot"
-=======
-: ENDGAME_PLAN = "zot"
->>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
-
-# depth to attempt to dive in ziggurats
-: ZIG_DIVE = 5
-
-###############################################################################
-
-# burn books with Trog, may theoretically cause navigation problems
-: BURN_BOOKS = true
-
-# enable certain somewhat spammy notes
-: SPAM = false
-
-# tab just takes a single action (for testing)
-: SINGLE_STEP = false
-: SINGLE_ATK_STEP = false
-: SINGLE_HP_STEP = -100
-: SINGLE_LOS_STEP = 1000
-: STOP_ON_WIN = false
-
-# panic (stop) at full inventory
-: FULL_INVENTORY_PANIC = true
-
-# quit after this number of turns while stuck
-: QUIT_TURNS = 1000
-
-###############################################################################
-
-# use a shield at all cost
-: SHIELD_CRAZY = true
-
--- hackety hack hack
-: BASE_RISK_SCALE = 1.20
-: EARLY_RISK_SCALE = 1.00
-: END_RISK_SCALE = 1.00
-
-###############################################################################
-
-# acceptable gods (join whichever one we find first)
-# gods who have been at least partially implemented: BCHLMOQRTUXY1
-# gods who are actually pretty decent on qw: CMORT
-# : GOD_LIST = { "Trog", }
-: GOD_LIST = { "Makhleb", }
-# use faded altar, abandoning if we don't get one of the gods in GOD_LIST
-: FADED_ALTAR = false
-
-# cycle through combos using c_persist.options
-: COMBO_CYCLE = false
-# combos to cycle through - uses the same syntax as the regular combo option
-# with an optional "^<god initials>" suffix to overwrite the GOD_LIST
-# list above. Here are some sample choices:
-: COMBO_CYCLE_LIST = "DDFi.waraxe^M, DDBe.handaxe^T, GrBe.handaxe^T, GrFi.waraxe^O, MiFi.waraxe^O"
-
-# Choose randomly between these combos. This will not apply if the COMBO_CYCLE
-# option was on in your _previous_ game.
-# combo = GrBe.handaxe
-combo = DDFi.waraxe
-
-###############################################################################
-
-# For random berserkers, use these combos:
-#combo = CeBe.handaxe, DDBe.handaxe, DEBe.handaxe, DrBe.handaxe, DsBe.handaxe
-#combo += FeBe.claws, FoBe.handaxe, GrBe.handaxe, GhBe.claws, HaBe.falchion
-#combo += HEBe.falchion, HOBe.handaxe, HuBe.handaxe, KoBe.mace, MfBe.spear
-#combo += MiBe.handaxe, MuBe.handaxe, NaBe.handaxe, OgBe.mace, OpBe.handaxe
-#combo += SpBe.shortsword, TeBe.handaxe, TrBe.claws, VSBe.handaxe, VpBe.handaxe
-
-# For a totally random combo (with chosen weapon type), hyperqwcombo.rc can
-# be created using hyperqwcombogen.sh and used:
-#combo =
-#include += hyperqwcombo.rc
-
-## The accomplishments of qw:
-# online wins: CeFi^O DDBe DDFi^C DDFi^O DDFi^Q DDFi^Y DDGl^M DDGl^R DrFi^O
-#              DsBe FoFi^O GhFi^O GrBe HOBe HuBe MfBe MiBe MiFi^C MiFi^O
-#              MiFi^Q MiFi^R MiFi^Y MuFi^O NaBe OgFi^O TeBe TrBe VSBe
-# offline wins: HaFi^O HEBe HEFi^O VpBe VpFi^O
-# (offline) runes: DgFi FeFi^O KoBe KoFi^O OpBe OpFi^O
-
-#####################################
-# enum values :/
-: ENUM_MONS_PANDEMONIUM_LORD = 344
-: ATT_FRIENDLY = 4
-: ATT_NEUTRAL = 1
-: ATT_HOSTILE = 0
-: LOS = 7
-: if you.race() == "Barachi" then
-:   LOS = 8
-: end
-
-#####################################
-# miscellaneous simple options
-
-name = qwp
-restart_after_game = true
 
 bold_brightens_foreground = true
 equip_bar = true
@@ -143,13 +17,12 @@ travel_key_stop = false
 default_manual_training = true
 autopickup_no_burden = false
 auto_exclude = 
---auto_exclude += oklob plant
+auto_exclude += oklob plant
 auto_exclude += ice statue
 auto_exclude += orange crystal statue
 auto_exclude += charred statue
 auto_exclude += obsidian statue
-auto_exclude += lightning spire
---auto_exclude += oklob sapling
+auto_exclude += oklob sapling
 auto_exclude += Roxanne
 hp_warning = 0
 show_more = false
@@ -884,9 +757,13 @@ function update_game_status()
          and not where:find("Dis") and not where:find("Geh")
          and not where:find("Coc") and not where:find("Tar")
          and not where:find("Abyss")
-      or game_status == "tomb" and you.have_rune("golden")
-      or game_status == "elf" and travel.find_deepest_explored("Elf") >= 3 and not where:find("Elf") -- hackety hack
-      or game_status == "crypt" and travel.find_deepest_explored("Crypt") >= 3 and not where:find("Crypt") -- hackety hack
+      --hackety hack
+      -- or game_status == "tomb" and you.have_rune("golden")
+      or game_status == "tomb" and travel.find_deepest_explored("Tomb") > 0
+      --   and not where:find("Tomb")
+      --   and not where:find("Abyss")
+      -- hackety hack
+      or game_status == "elf" and travel.find_deepest_explored("Elf") >= 3 and not where:find("Elf")
       or game_status == "tso" and you.god() == "the Shining One"
       or game_status == "zig" and c_persist.entered_zig and not where:find("Zig") do
     which_endgame_plan = which_endgame_plan + 1
@@ -903,7 +780,7 @@ function slime_soon()
 end
 
 function in_extended()
-  return (game_status == "pan" or game_status == "hells" or game_status == "crypt" or game_status == "tomb")
+  return (game_status == "pan" or game_status == "hells" or game_status == "tomb")
 end
 
 -- list of armour slots, this is used to normalize names for them and also
@@ -2593,24 +2470,13 @@ function update_monster_array()
     for y = -LOS,LOS do
       m = monster.get_monster_at(x, y)
       monster_array[x][y] = m
-      --if m ~= nil and m:name() == "electric eel" and where:find("Lair") and not feat_is_upstairs(view.feature_at(0,0)) then
-      --  --magic("x" .. delta_to_vi(x,y) .. "e")
-      --  travel.set_exclude(x,y,LOS)
-      --end
-<<<<<<< HEAD
-      if m and m:name() == "oklob plant" and (where ~= "Swamp:4") and you.see_cell_solid_see(x,y) then -- hackety hack hackety
-        if SPAM then
-          say("FOUND AN OKLOB PLANT!")
-        end
-        if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") then
-=======
+      if m ~= nil and m:name() == "electric eel" and where:find("Lair") then
+        --magic("x" .. delta_to_vi(x,y) .. "e")
+        travel.set_exclude(x,y,LOS)
+      end
       if m and m:name() == "oklob plant" and (where ~= "Swamp:4") then -- hackety hack hackety
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
-        end
-        if not feat_is_upstairs(view.feature_at(0,0)) and where:find("Lair") then
->>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
-          travel.set_exclude(x,y,LOS)
         end
         viewing_oklob = true
       end
@@ -2624,37 +2490,16 @@ function update_monster_array()
         --table.insert(c_persist.mlist, entry.m:name())
       end
       --hackety hack
-
-      dir_x = 0
-      dir_y = 0
-      if m then
-        if x ~= 0 then
-          dir_x = x/abs(x)
-        end
-        if y ~= 0 then
-          dir_y = y/abs(y)
-        end
-      end
-
+      
       if m and you.see_cell_no_trans(x, y) 
-<<<<<<< HEAD
-        and you.see_cell_solid(x, y)
-=======
-        and you.see_cell_solid(x, y) 
->>>>>>> 0e4e2c4f33fd32116888a928dfe4591d8717749a
-        and not (m:name() == "oklob plant" and you.see_cell_solid_see(x,y))
+        --and you.see_cell_solid(x, y) 
         and not (m:is_constricted() or m:is_caught()
                   or m:status("petrified")
                   or m:status("paralysed")
                   or m:desc():find("sleeping")
-                  or (m:is_stationary() and you.xl() > 20)
-                  or (view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		  or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
-         		  or (view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		  or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
-              or (view.feature_at(x-dir_x,y-dir_y) == "floor" and m:name() == 'electric eel'))
+                  or (m:is_stationary() and you.xl() > 20))
         and m:attitude() < 1 then
- 
+        
         threat_level = m:threat()
         --if buffed() then
         --  threat_level = max(min(1,threat_level), threat_level-1)
@@ -2682,10 +2527,6 @@ function update_monster_array()
         threat_dist = supdist(x, y)
         threat_speed = mon_speed_num(m)/player_speed_num()
 
-        if you.race() == "Deep Dwarf" then
-          threat_speed = 100*threat_speed / you.depth_fraction()
-        end
-
         has_ranged = m:has_known_ranged_attack()
         has_spells = #m:spells() > 0
 
@@ -2699,9 +2540,9 @@ function update_monster_array()
           threat_range_dist = min(threat_range_dist, threat_dist)
           threat_range_speed = max(threat_range_speed, threat_speed)
           threat_range_hpct = threat_range_hpct + threat_hpct
-        else --if 1 --not m:is_safe() 
-          --and not view.feature_at(0,0) == "deep_water"
-          --and not view.feature_at(0,0) == "lava" then
+        elseif 1 --not m:is_safe() 
+          and not view.feature_at(0,0) == "deep_water"
+          and not view.feature_at(0,0) == "lava" then
           --say("MELEE: " .. m:name() .. " " .. x .. " " .. y)
           n_melee_threats = n_melee_threats + 1
           threat_melee = threat_melee + threat_level
@@ -3025,16 +2866,15 @@ function get_monster_info(dx, dy)
   info.orc_priest_wizard = (name == "orc priest" or
                             name == "orc high priest" or
                             name == "orc wizard") and 1 or 0
-  info.not_summoned = (not m:is("summoned")) and 1 or 0
   return info
 end
 
 function compare_monster_info(m1, m2)
-  flag_order = {"can_attack", "safe", "distance", "not_summoned", "constricting_you",
+  flag_order = {"can_attack", "safe", "distance", "constricting_you",
                 "very_stabbable", "injury", "threat", "orc_priest_wizard"}
   -- hackety hack 
   if where:find("Vaults:5") then
-    flag_order = {"can_attack", "safe", "not_summoned", "constricting_you",
+    flag_order = {"can_attack", "safe", "constricting_you",
                 "very_stabbable", "injury", "threat", "orc_priest_wizard", "distance"}
   end
   for i, flag in ipairs(flag_order) do
@@ -3052,7 +2892,7 @@ function is_candidate_for_attack(x, y, no_untabbable)
   if not m or m:attitude() > ATT_NEUTRAL then
     return false
   end
-  if m:name() == "butterfly" --or (m:name() == "oklob plant" and where ~= "Swamp:4") --hackety hack hack
+  if m:name() == "butterfly" or (m:name() == "not oklob plant" and where ~= "Swamp:4") --hackety hack hack
       or m:name() == "orb of destruction" then
     return false
   end
@@ -3603,10 +3443,7 @@ end
 
 -- are we significantly stronger than usual thanks to a buff that we used?
 function buffed()
-  --if you.depth_fraction() > 0.99 then --hackety hack
-  --  return false
-  --end
-  if where:find("Zot") then
+  if you.depth_fraction() > 0.99 then --hackety hack
     return false
   end
   if transformed() or you.corrosion() >= 2 then
@@ -3944,11 +3781,7 @@ function plan_cure_bad_poison()
     return false
   end
   -- hackety hack
-  if you.teleporting() 
-    and you.xl() < 20
-    and hp_is_low(20) 
-    and threat_total > 0 
-    and you.transform() ~= "pig" then
+  if you.teleporting() and hp_is_low(20) and threat_total > 0 then
     return drink_by_name("curing")
   end
   if you.poison_survival() <= chp() - 60 then
@@ -4104,15 +3937,11 @@ function plan_haste()
 end
 
 function plan_might()
-  if you.status("might") then
-    return false
-  end
   --hackety hack
   --if not you.teleporting() and hp_is_low(20) and monsters_in_view > 0 then
   --  return might()
   --end
-  if not you.teleporting() and threat_total > 5 
-    and (hp_is_low(20) or (hp_is_low(60) and not buffed())) then
+  if not you.teleporting() and threat_total > 5 and hp_is_low(20) then
     return might()
   end
   if want_to_serious_buff() then
@@ -4135,17 +3964,12 @@ function plan_orbrun_finesse()
   return false
 end
 
-function heal_wounds(allow_dd)
-  if allow_dd == nil then
-    allow_dd = true
-  end
-  if allow_dd then
-    if you.race() == "Deep Dwarf" and you.xl() < 15
-      and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
-      and dd_heal_ability() then
-      dd_hw_meter = dd_hw_meter + 100
-      return true
-    end
+function heal_wounds()
+  if you.race() == "Deep Dwarf" and you.xl() < 15
+     and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
+     and dd_heal_ability() then
+    dd_hw_meter = dd_hw_meter + 100
+    return true
   end
   if you.mutation("no potion heal") < 3
      and drink_by_name("heal wounds") then
@@ -4276,8 +4100,7 @@ function step_reason(a1,a2)
          and a2.stair_closer < 10000 and a1.stair_closer > 0
          and a1.enemy_distance < 10
          --and monsters_reachable > 0 -- hackety hack
-         --and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
-         and ((viewing_oklob and not where:find("Zot")) or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
+         and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
   
@@ -4349,8 +4172,9 @@ function step_reason(a1,a2)
     return false
   elseif a1.adjacent == 1 then
     return false
-  elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) then
-    return "outnumbered"
+  --elseif (a2.stair_closer < a1.stair_closer) 
+  --  and (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) then
+  --  return "outnumbered"
   else
     return false
   end
@@ -4489,7 +4313,7 @@ function plan_coward_step()
     if SPAM then
       say("Stepping ~*~*~tactically~*~*~ (" .. tactical_reason .. ").")
     end
-    magic(tactical_step .. "Y")
+    magic(tactical_step)
     return true
   end
   --hackety hack
@@ -4545,18 +4369,8 @@ function plan_threat_flee_step()
   --  return read_by_name("fog")
   --end
 
-  if hp_is_low(40) and threat_total > 10
-    or hp_is_low(20) and threat_total > 5
-    or hp_is_low(10) and threat_total > 1 then
-    r = heal_wounds(false)
-    if r then
-      return r
-    end
-  end
-
-  if (hp_is_low(60) and threat_total > 20 and where ~= "Vaults:5")
-    or hp_is_low(40) and threat_total > 10 
-    or hp_is_low(20) and threat_total > 5 then
+  if hp_is_low(40) and threat_total > 20 
+    or hp_is_low(20) and threat_total > 10 then
     if can_teleport() then
       r = teleport()
       if r then
@@ -4565,10 +4379,9 @@ function plan_threat_flee_step()
     end
   end
 
-  if hp_is_low(60) and threat_total > 20
-    or hp_is_low(40) and threat_total > 10
-    or hp_is_low(20) and threat_total > 5 then
-    r = heal_wounds(false)
+  if hp_is_low(40) and threat_total > 20
+    or hp_is_low(20) and threat_total > 10 then
+    r = heal_wounds()
     if r then
       return r
     end
@@ -4650,9 +4463,7 @@ function plan_threat_flee_step()
     if not (best_x == 0 and best_y == 0) then
       --panic("plan_threat_flee_step:" .. best_x .. best_y)
       step = delta_to_vi(best_x,best_y)
-      if SPAM then
-        say("THREAT FLEE STEP:" .. step)
-      end
+      say("THREAT FLEE STEP:" .. step)
       if (you.turns() >= last_flee_turn+10) then
         last_flee_turn = you.turns()
       end
@@ -4661,16 +4472,10 @@ function plan_threat_flee_step()
       return true
     end
   end
-  if threat_total > 20 
-    and hp_is_low(40) then
-    if view.cloud_at(0,0) == nil then
-      r = read_by_name("fog")
-      if r then
-        return r
-      else
-        return haste()
-      end
-    end
+  if threat_total > 40 
+    and view.cloud_at(0,0) == nil
+    and hp_is_low(50) then
+    return read_by_name("fog")
   end
   return false
 end
@@ -4880,8 +4685,7 @@ function want_to_finesse()
   if danger and hp_is_low(75) and not you.teleporting() and not you.status("finesse") then
     return true
   end
-  if (threat_total > 10 or (hp_is_low(90) and threat_total > 1))
-    and not you.status("finesse") then
+  if threat_total > 20 and not you.status("finesse") then
     return true
   end
   return false
@@ -6218,10 +6022,6 @@ function feat_is_upstairs(feat)
 end
 
 function want_to_stairdance_up()
-  if where:find("Zig") then --hackety hack
-    return false
-  end
-
   local feat = view.feature_at(0,0)
   if not feat_is_upstairs(feat) then
     return false
@@ -6251,7 +6051,7 @@ function want_to_stairdance_up()
     return false
   end
   if follow_count == 0 and (reason_to_rest(90) or you.status("barbed spikes"))
-     --and not buffed() --hackety hack hack
+     and not buffed() --hackety hack hack
      or other_count > 0 and follow_count > 0 then
     stairdance_count[where] = n + 1
     return true
@@ -6289,7 +6089,7 @@ function plan_stairdance_up()
     say("STAIRDANCE")
     --hackety hack
     if hp_is_low(10) and (threat_melee_dist < 2 or threat_range > 1) then
-      r = heal_wounds(false)
+      r = heal_wounds()
       if r then
         return r
       end
@@ -6860,8 +6660,6 @@ function choose_lair_rune_branch()
     else
       branch_options = { "S", "N", "P", "A" }
     end
-  elseif RUNE_PREFERENCE == "gsmart" then
-    branch_options = { "P", "A", "S", "N" }
   elseif RUNE_PREFERENCE == "nowater" then
     branch_options = { "P", "N", "S", "A" }
   else -- "random"
@@ -6934,16 +6732,11 @@ function plan_new_travel()
       travel_destination = "C"
     elseif game_status == "elf" then
       travel_destination = "E"
-    elseif game_status == "crypt" then
-      travel_destination = "C"
     else
       travel_destination = "D"
     end
   end
   if where == "Elf:3" and travel.find_deepest_explored("Elf") >= 3 then
-    travel_destination = "D"
-  end
-  if where == "Crypt:3" and travel.find_deepest_explored("Crypt") >= 3 then
     travel_destination = "D"
   end
   if where == "Slime:5" and you.have_rune("slimy") then
@@ -6960,8 +6753,6 @@ function plan_new_travel()
         travel_destination = "L"
       elseif game_status == "elf" then
         travel_destination = "E"
-      elseif game_status == "crypt" then
-        travel_destination = "C"
       elseif game_status == "tomb" then
         travel_destination = "V"
       else
@@ -7320,11 +7111,11 @@ function set_stair_target(c)
 end
 
 function plan_continue_flee()
-  if (you.turns() >= last_flee_turn + 10 and threat_total <= 20) --hackety hack
+  if (you.turns() >= last_flee_turn + 10 and threat_total <= 5) --hackety hack
     or you.transform() == "tree" --hackety hack
     or you.status("barbed spikes") --hackety hack
     or you.confused() --hackety hack
-    or target_stair == nil then
+    or not target_stair then
     last_flee_turn = -100
     return false
   end
@@ -7367,17 +7158,8 @@ end
 
 function plan_stuck()
   stuck_turns = stuck_turns + 1
-
-  if you.transform() == "tree" then
-    return plan_wait()
-  end
-
-  if stuck_turns > QUIT_TURNS/10 then
-    magic("X" .. control('e'))
-  end
-
   if stuck_turns > QUIT_TURNS then
-    --panic("WANT TO QUIT!")
+    --panic("QUITTING!")
     magic(control('q') .. "yes\r")
     return true
   end
@@ -8164,8 +7946,6 @@ end
 ----------------------------------------
 -- cascading plans: this is the bot's flowchart for using the above plans
 
-local last_delay = 0
-
 function cascade(plans)
   local plan_turns = {}
   local plan_result = {}
@@ -8183,8 +7963,7 @@ function cascade(plans)
           if SINGLE_STEP or SINGLE_ATK_STEP or hp_is_low(SINGLE_HP_STEP) or monsters_in_view > SINGLE_LOS_STEP then
             say(plandata[2])
           end
-          if (DELAYED and result == true) or (you.turns() >= last_delay+1000) then
-            last_delay = you.turns()
+          if (DELAYED and result == true) or (you.turns() % 1000 >= 0 and you.turns() % 1000 <= 1) then
             crawl.delay(next_delay)
           end
           next_delay = DELAY_TIME
@@ -9138,9 +8917,6 @@ function ttt()
 
   say("STATUS: " .. game_status)
   say("WHERE: " .. where)
-  if travel_destination ~= nil then
-    say("DEST: " .. travel_destination)
-  end
 
   ---print_stair_dists()
 end
@@ -9186,7 +8962,7 @@ function print_stair_dists()
 end
 
 function c_trap_is_safe(trap)
-  return (trap ~= "permanent teleport" and trap ~= "dispersal")
+  return (trap ~= "permanent teleport")
 end
 
 function c_answer_prompt(prompt)
@@ -9231,7 +9007,7 @@ function c_answer_prompt(prompt)
     return true
   end
   --if prompt:find("a travel-excluded area") then
-  --  return true
+  --  return false
   --end
   --if prompt:find("The barbs in your skin will harm you if you move") then
   --  return false
