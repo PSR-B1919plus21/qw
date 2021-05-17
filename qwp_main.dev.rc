@@ -213,6 +213,7 @@ local prev_hatch_y
 local risk_scale = 1.0 --hackety
 
 local viewing_oklob = 0 --hackety
+local viewing_eel = 0
 
 -- hackety hack
 local safe_x = 0
@@ -2383,9 +2384,6 @@ function is_ranged(m)
   if name:find("kraken") then
     return false
   end
-  if name:find("electric eel") then
-    return false
-  end
   if m:has_known_ranged_attack() then
     return true
   end
@@ -2443,6 +2441,7 @@ end
 
 function update_monster_array()
   viewing_oklob = 0
+  viewing_eel = 0
   local x,y,i,j
   enemy_list = {}
   --c_persist.mlist = {}
@@ -2486,6 +2485,12 @@ function update_monster_array()
         if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") and viewing_oklob > 3 then
           travel.set_exclude(x,y,LOS)
         end
+      end
+      if m and m:name() == "electric eel" then -- hackety hack hackety
+        if SPAM then
+          say("FOUND AN ELECTRIC EEL!")
+        end
+        viewing_eel = viewing_eel + 1
       end
       if is_candidate_for_attack(x, y) then
         --monster_last = m -- hackety hack
@@ -2958,7 +2963,8 @@ function count_ranged(cx, cy, r)
     if dist > 1 and dist <= r then
       if dist == 2 and is_fast(e.m)
          or (is_ranged(e.m) or dist == 2 and e.m:reach_range() >= 2)
-            and view.cell_see_cell(cx,cy,e.x,e.y) then
+            and view.cell_see_cell(cx,cy,e.x,e.y) 
+            and not (e.m:name() == "electric eel" or e.m:name() == "lava snake") then
         --if cx == 0 and cy == 0 and view.can_reach(e.x, e.y) then --hackety hack hack
         --if view.can_reach(e.x, e.y) then --hackety hack hack
         i = i+1
@@ -4144,7 +4150,8 @@ function step_reason(a1,a2)
          --and monsters_reachable > 0 -- hackety hack
          --and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
          --and ((viewing_oklob and not where:find("Zot")) or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
-         and (reason_to_rest(90) or you.transform() == "pig") -- hackety hack
+         and reason_to_rest(90)
+         and (viewing_eel ~= n_range_threats) --hackety hack
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
   
@@ -4418,7 +4425,7 @@ function plan_threat_flee_step()
     end
   end
 
-  if (hp_is_low(60) and (threat_total > 20 or viewing_oklob > 3) and where ~= "Vaults:5")
+  if (hp_is_low(60) and (threat_total > 20 or viewing_oklob) and where ~= "Vaults:5")
     or hp_is_low(40) and threat_total > 10 
     or hp_is_low(20) and threat_total > 5 then
     if can_teleport() then
@@ -4473,7 +4480,10 @@ function plan_threat_flee_step()
     cur_dist = 10000
   end
 
-  if viewing_oklob and n_range_threats == 1 then
+  if viewing_oklob and viewing_oklob == #enemy_list then
+    return false
+  end
+  if viewing_eel and viewing_eel == #enemy_list then
     return false
   end
 
@@ -4490,17 +4500,13 @@ function plan_threat_flee_step()
     or (threat_total == 0 and invisi_count > 0 and hp_is_low(75))
     then
 
-    if feat_is_upstairs(view.feature_at(0,0)) and you.race() ~= "Deep Dwarf" then
-      if hp_is_low(99.99) then
-        if not travel_destination then
-          travel_destination = cur_branch()
-        end
-        expect_new_location = true
-        magic("<")
-        return true
-      else
-        return false
+    if feat_is_upstairs(view.feature_at(0,0)) then
+      if not travel_destination then
+        travel_destination = cur_branch()
       end
+      expect_new_location = true
+      magic("<")
+      return true
     end
 
     local best_x = 0
