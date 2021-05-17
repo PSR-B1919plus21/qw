@@ -22,6 +22,7 @@ auto_exclude += ice statue
 auto_exclude += orange crystal statue
 auto_exclude += charred statue
 auto_exclude += obsidian statue
+auto_exclude += conjurer statue
 auto_exclude += lightning spire
 --auto_exclude += oklob sapling
 auto_exclude += Roxanne
@@ -214,6 +215,8 @@ local risk_scale = 1.0 --hackety
 
 local viewing_oklob = 0 --hackety
 local viewing_eel = 0
+local viewing_lsnake = 0
+local viewing_wizard = 0
 
 -- hackety hack
 local safe_x = 0
@@ -1242,7 +1245,7 @@ function want_potion(it)
   end
   if sub ~= "curing" and sub ~= "heal wounds" and sub ~= "haste"
      and sub ~= "resistance" and sub ~= "experience" and sub ~= "might"
-     and sub ~= "mutation" and sub ~= "cancellation" then
+     and sub ~= "mutation" and sub ~= "cancellation" and sub ~= "lignification" then
     return false
   end
   return true
@@ -1256,7 +1259,8 @@ function want_scroll(it)
   if sub ~= "identify" and sub ~= "teleportation" and sub ~= "remove curse"
      and sub ~= "enchant weapon" and sub ~= "enchant armour"
      and sub ~= "acquirement" and sub ~= "brand weapon"
-     and (not WILL_ZIG or sub ~= "fog" and sub ~= "blinking") then
+     --and (not WILL_ZIG or sub ~= "fog" and sub ~= "blinking") then
+     and sub ~= "fog" and sub ~= "blinking" then
     return false
   end
   return true
@@ -2442,6 +2446,8 @@ end
 function update_monster_array()
   viewing_oklob = 0
   viewing_eel = 0
+  viewing_wizard = 0
+
   local x,y,i,j
   enemy_list = {}
   --c_persist.mlist = {}
@@ -2470,7 +2476,7 @@ function update_monster_array()
     for y = -LOS,LOS do
       m = monster.get_monster_at(x, y)
       monster_array[x][y] = m
-      if m and m:name() == "oklob plant" then -- hackety hack hackety
+      if m and m:name() == "oklob plant" and you.see_cell_no_trans(x,y) then -- hackety hack hackety
         if SPAM then
           say("FOUND AN OKLOB PLANT!")
         end
@@ -2481,12 +2487,35 @@ function update_monster_array()
         if viewing_oklob > 1 then
           panic("OKLOBS: " .. viewing_oklob)
         end
+        if viewing_oklob >= 3 and where:find("Lair") then
+          travel.set_exclude(x,y,LOS)
+        elseif you.see_cell_solid_see(x,y) then
+          travel.set_exclude(0,0,0)
+        end
       end
       if m and m:name() == "electric eel" then -- hackety hack hackety
         if SPAM then
           say("FOUND AN ELECTRIC EEL!")
         end
         viewing_eel = viewing_eel + 1
+        if viewing_eel >= 3 and where:find("Lair") then
+          travel.set_exclude(0,0,0)
+        end
+      end
+      if m and m:name() == "lava snake" then -- hackety hack hackety
+        if SPAM then
+          say("FOUND A LAVA SNAKE!")
+        end
+        viewing_lsnake = viewing_lsnake + 1
+        if viewing_lsnake >= 3 and where:find("Lair") then
+          travel.set_exclude(0,0,0)
+        end
+      end
+      if m and m:name() == "wizard" then -- hackety hack hackety
+        if SPAM then
+          say("FOUND A WIZARD!")
+        end
+        viewing_wizard = viewing_wizard + 1
       end
       if is_candidate_for_attack(x, y) then
         --monster_last = m -- hackety hack
@@ -2519,13 +2548,18 @@ function update_monster_array()
                   --or (m:is_stationary() and you.xl() > 20)
                   --or (view.feature_at(0,0) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
          		      --or (view.feature_at(0,0) == "lava" and view.feature_at(x,y) ~= "lava")
-                  or (view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		      or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
-         		      or (view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		      or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
+                  or (you.status("fly") and view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
+         		      or (you.status("fly") and view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
+         		      or (you.status("fly") and view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
+         		      or (you.status("fly") and view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
         and m:attitude() < 1 then
  
         threat_level = m:threat()
+
+        if m:name() == "pig" then
+          threat_level = 2
+        end
+
         --if buffed() then
         --  threat_level = max(min(1,threat_level), threat_level-1)
         --end
@@ -2875,7 +2909,10 @@ function get_monster_info(dx, dy)
   info.threat = m:threat()
   info.orc_priest_wizard = (name == "orc priest" or
                             name == "orc high priest" or
-                            name == "orc wizard") and 1 or 0
+                            name == "orc wizard" or
+                            name == "lich" or
+                            name == "ancient lich" or
+                            name == "wizard") and 1 or 0
   info.not_summoned = (not m:is("summoned")) and 1 or 0
   return info
 end
@@ -2936,12 +2973,9 @@ function count_ranged(cx, cy, r)
     local dist = supdist(cx-e.x,cy-e.y)
     if dist > 1 and dist <= r then
       if dist == 2 and is_fast(e.m)
-         or (is_ranged(e.m) or dist == 2 and e.m:reach_range() >= 2)
-            and view.cell_see_cell(cx,cy,e.x,e.y) then
-        --if cx == 0 and cy == 0 and view.can_reach(e.x, e.y) then --hackety hack hack
-        --if view.can_reach(e.x, e.y) then --hackety hack hack
+        or (is_ranged(e.m) or dist == 2 and e.m:reach_range() >= 2)
+        and view.cell_see_cell(cx,cy,e.x,e.y) then
         i = i+1
-        --end
       end
     end
   end
@@ -4113,7 +4147,6 @@ end
 --                 (when not cleaving)
 --   fleeing     - moving towards stairs
 function step_reason(a1,a2)
-  local on_stairs = feat_is_upstairs(view.feature_at(0,0))
   if not (a2.can_move and a2.safe and a2.supdist > 0) then
     return false
   elseif (a2.fumble or a2.slow) and a1.cloud_safe then
@@ -4122,32 +4155,43 @@ function step_reason(a1,a2)
          and a2.stair_closer < 10000 and a1.stair_closer > 0
          and a1.enemy_distance < 10
          and reason_to_rest(90)
-         and not on_stairs
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
-  elseif (a2.stair_closer < a1.stair_closer) and (not a1.near_ally) and a2.longranged == 0 and a2.adjacent == 0 and a1.longranged > 0 then
+  elseif (a2.stair_closer < a1.stair_closer) 
+    and (not a1.near_ally) 
+    and a2.longranged == 0 
+    and a2.adjacent == 0 
+    and a1.longranged > 0 then
+    return "hiding"
+  elseif (a2.stair_closer <= a1.stair_closer) and you.depth_fraction() < 99
+    and (not a1.near_ally) 
+    and a2.longranged == 0 
+    and a2.adjacent == 0 
+    and a1.longranged > 0 then
     return "hiding"
   --elseif (not a1.near_ally) and a2.ranged == 0 and a2.adjacent == 0 and a2.unalert < a1.unalert then
   --  return "stealth"
   elseif not a1.cloud_safe then
     return "cloud"
-  elseif a1.fumble then
-    if a2.ranged > a1.ranged and a2.enemy_distance > a1.enemy_distance then
-      return false
-    else
-      return "water"
-    end
+  --elseif a1.fumble then
+  --  if a2.ranged > a1.ranged and a2.enemy_distance > a1.enemy_distance then
+  --    return false
+  --  else
+  --    return "water"
+  --  end
   elseif have_reaching() and a1.slow_adjacent > 0 and a2.adjacent == 0
          and a2.ranged == 0 then
     return "reaching"
   elseif cleaving() then
     return false
-  elseif a1.adjacent == 1 then
+  elseif a1.adjacent == 1 then  
     return false
   elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) 
-    and not on_stairs 
-    and not (where == "Vaults:5" and a2.stair_closer > a1.stair_closer) 
-    and not (where == "Zot:5" and a2.stair_closer > a1.stair_closer) then
+    and (a2.stair_closer < a1.stair_closer) then
+    return "outnumbered"
+  elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) 
+    and (a2.stair_closer <= a1.stair_closer)
+    and you.depth_fraction() < 99 then
     return "outnumbered"
   else
     return false
@@ -4280,6 +4324,11 @@ function plan_water_step()
 end
 
 function plan_coward_step()
+  feat = view.feature_at(0,0)
+  if feat_is_upstairs(feat) 
+    or (feat:find("sealed_stairs_up") and where == "Vaults:5") then
+    return false
+  end
   if tactical_reason == "hiding" or tactical_reason == "stealth" then
     if tactical_reason == "hiding" then
       hiding_turn_count = you.turns()
@@ -4318,7 +4367,9 @@ function plan_coward_step()
 end
 
 function plan_flee_step()
-  if feat_is_upstairs(view.feature_at(0,0)) then
+  feat = view.feature_at(0,0)
+  if feat_is_upstairs(feat) 
+    or (feat:find("sealed_stairs_up") and where == "Vaults:5") then
     return false
   end
   if tactical_reason == "fleeing" then
@@ -4335,6 +4386,15 @@ end
 
 -- hackety hackety hack
 function plan_threat_flee_step()
+
+  if you.transform() == "pig" then
+    panic("IM A PIG!")
+    --r = drink_by_name("lignification")
+    --if r then
+    --  return r
+    --end
+  end
+
   if (hp_is_low(40) and threat_total > 10)
     or (hp_is_low(20) and threat_total > 5)
     or (hp_is_low(10) and threat_total > 1) then
@@ -4387,6 +4447,14 @@ function plan_threat_flee_step()
       return false
   end
 
+  if viewing_wizard and viewing_wizard == n_range_threats then
+    return false
+  end
+
+  if viewing_eel and viewing_eel == n_range_threats then
+    return false
+  end
+
   -- hackety hack
   -- theres a problem: the closest stair may not have a clear path but the farther stair does
   best_dist = 10000
@@ -4403,7 +4471,7 @@ function plan_threat_flee_step()
     cur_dist = 10000
   end
 
-  if (you.turns() < last_flee_turn+10)
+  if (you.turns() < last_flee_turn+10) or (viewing_oklob >= 3 and where:find("Lair"))
     or (threat_total == 0 and hp_is_low(50) and cur_dist <= 10)
     or (threat_melee_total > 2 and threat_range < 1
        and (threat_melee_dist > 1 or threat_melee_speed <= 1))
@@ -4415,7 +4483,8 @@ function plan_threat_flee_step()
     or (threat_total == 0 and invisi_count > 0 and hp_is_low(75))
     then
 
-    if feat_is_upstairs(view.feature_at(0,0)) and hp_is_low(90) then
+    feat = view.feature_at(0,0)
+    if feat_is_upstairs(feat) and hp_is_low(90) then
       if not travel_destination then
         travel_destination = cur_branch()
       end
@@ -4434,7 +4503,8 @@ function plan_threat_flee_step()
           --and is_traversable(x,y)
           and not view.withheld(x,y)
           and monster.get_monster_at(x,y) == nil
-          and view.is_safe_square(x,y) then
+          and view.is_safe_square(x,y) 
+          and not (feat:find("sealed_stairs_up") and where == "Vaults:5") then
           d = stair_dists[num][best_i][dx+x][dy+y]
           if d ~= nil then
             if d < best_d then
@@ -4463,11 +4533,11 @@ function plan_threat_flee_step()
   if threat_total > 20 
     and hp_is_low(40) then
     if view.cloud_at(0,0) == nil then
-      r = read_by_name("fog")
+      r = haste()
       if r then
         return r
       else
-        return haste()
+        return read_by_name("fog")
       end
     end
   end
@@ -4791,7 +4861,8 @@ function want_to_teleport()
 end
 
 function want_to_orbrun_teleport()
-  return (hp_is_low(33) and sense_danger(2))
+  --return (hp_is_low(33) and sense_danger(2))
+  return (hp_is_low(50) and sense_danger(3))
 end
 
 function need_to_wait_for_ely_healing()
@@ -7173,10 +7244,9 @@ function plan_stuck()
     return plan_wait()
   end
 
-  if stuck_turns > QUIT_TURNS/10 then
-    magic("X" .. control('e'))
-    return true
-  end
+  --if stuck_turns > QUIT_TURNS/10 then
+  --  magic("X" .. control('e'))
+  --end
 
   if stuck_turns > QUIT_TURNS then
     --panic("WANT TO QUIT!")
@@ -8940,7 +9010,8 @@ function ttt()
 
   say("threat pole:" .. threat_pole)
 
-  say("STATUS: " .. game_status)
+  say("GAME STATUS: " .. game_status)
+  say("FLYING STATUS: " .. tostring(you.status("fly")))
   say("WHERE: " .. where)
   if travel_destination ~= nil then
     say("DEST: " .. travel_destination)
