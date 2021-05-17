@@ -4144,7 +4144,7 @@ function step_reason(a1,a2)
          --and monsters_reachable > 0 -- hackety hack
          --and (viewing_oklob or you.transform() == "pig" or (reason_to_rest(90) and not buffed())) --hackety hack hack
          --and ((viewing_oklob and not where:find("Zot")) or you.transform() == "pig" or reason_to_rest(90)) --hackety hack 
-         and reason_to_rest(90)
+         and (reason_to_rest(90) or you.transform() == "pig") -- hackety hack
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
   
@@ -4418,7 +4418,7 @@ function plan_threat_flee_step()
     end
   end
 
-  if (hp_is_low(60) and (threat_total > 20 or viewing_oklob) and where ~= "Vaults:5")
+  if (hp_is_low(60) and (threat_total > 20 or viewing_oklob > 3) and where ~= "Vaults:5")
     or hp_is_low(40) and threat_total > 10 
     or hp_is_low(20) and threat_total > 5 then
     if can_teleport() then
@@ -4490,13 +4490,17 @@ function plan_threat_flee_step()
     or (threat_total == 0 and invisi_count > 0 and hp_is_low(75))
     then
 
-    if feat_is_upstairs(view.feature_at(0,0)) then
-      if not travel_destination then
-        travel_destination = cur_branch()
+    if feat_is_upstairs(view.feature_at(0,0)) and you.race() ~= "Deep Dwarf" then
+      if hp_is_low(99.99) then
+        if not travel_destination then
+          travel_destination = cur_branch()
+        end
+        expect_new_location = true
+        magic("<")
+        return true
+      else
+        return false
       end
-      expect_new_location = true
-      magic("<")
-      return true
     end
 
     local best_x = 0
