@@ -2297,6 +2297,7 @@ end
 
 function can_sgd()
   return (not (you.status("engulfed") or you.berserk() or you.confused() or you.silenced() or
+          you.status("engulfed (cannot breathe)") or
           you.piety_rank() < 5 or
           chp() <= 10 or
           you.god() ~= "Makhleb"))
@@ -2380,6 +2381,9 @@ end
 function is_ranged(m)
   local name = m:name()
   if name:find("kraken") then
+    return false
+  end
+  if name:find("electric eel") then
     return false
   end
   if m:has_known_ranged_attack() then
@@ -2575,7 +2579,7 @@ function update_monster_array()
 
       --hackety hack
       if is_candidate_for_attack(x, y, true) and
-        not (m:name() == "electric eel" or m:name() == "lava snake") and
+        --not (m:name() == "electric eel" or m:name() == "lava snake") and
         --not you.see_cell_no_trans(x, y) and
         you.see_cell_solid(x, y) then
         if (not m:is_stationary() and not viewing_oklob) and (m:stabbability() == 0) then
@@ -3997,17 +4001,12 @@ function plan_orbrun_finesse()
   return false
 end
 
-function heal_wounds(allow_dd)
-  if allow_dd == nil then
-    allow_dd = true
-  end
-  if allow_dd then
-    if you.race() == "Deep Dwarf" and you.xl() < 15
-      and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
-      and dd_heal_ability() then
-      dd_hw_meter = dd_hw_meter + 100
-      return true
-    end
+function heal_wounds()
+  if you.race() == "Deep Dwarf" and you.xl() < 15
+    and not (immediate_danger and (hp_is_low(25) or chp() <= 20))
+    and dd_heal_ability() then
+    dd_hw_meter = dd_hw_meter + 100
+    return true
   end
   if you.mutation("no potion heal") < 3
      and drink_by_name("heal wounds") then
@@ -4399,38 +4398,42 @@ end
 
 -- hackety hackety hack
 function plan_threat_flee_step()
-  --say("starting plan threat flee step")
-
-  --if (hp_is_low(20) or threat_total > 30)
-  --  and view.cloud_at(0,0) == nil
-  --  and hp_is_low(50) then
-  --  return read_by_name("fog")
-  --end
-
-  if hp_is_low(40) and threat_total > 10
-    or hp_is_low(20) and threat_total > 5
-    or hp_is_low(10) and threat_total > 1 then
-    r = heal_wounds(false)
+  if (hp_is_low(40) and threat_total > 10)
+    or (hp_is_low(20) and threat_total > 5)
+    or (hp_is_low(10) and threat_total > 1) then
+    if you.race() == "Deep Dwarf" then
+      r = false
+    else 
+      r = heal_wounds()
+    end
     if r then
       return r
     end
   end
 
   if (hp_is_low(60) and threat_total > 20 and where ~= "Vaults:5")
-    or hp_is_low(40) and threat_total > 10 
-    or hp_is_low(20) and threat_total > 5 then
+    or (hp_is_low(40) and threat_total > 10)
+    or (hp_is_low(20) and threat_total > 5) then
     if can_teleport() then
-      r = teleport()
+      if you.race() == "Deep Dwarf" then
+        r = false
+      else 
+        r = teleport()
+      end
       if r then
         return r
       end
     end
   end
 
-  if hp_is_low(60) and threat_total > 20
-    or hp_is_low(40) and threat_total > 10
-    or hp_is_low(20) and threat_total > 5 then
-    r = heal_wounds(false)
+  if (hp_is_low(60) and threat_total > 20)
+    or (hp_is_low(40) and threat_total > 10)
+    or (hp_is_low(20) and threat_total > 5) then
+    if you.race() == "Deep Dwarf" then
+      r = false
+    else 
+      r = heal_wounds()
+    end
     if r then
       return r
     end
@@ -7236,6 +7239,7 @@ function plan_stuck()
 
   if stuck_turns > QUIT_TURNS/10 then
     magic("X" .. control('e'))
+    return true
   end
 
   if stuck_turns > QUIT_TURNS then
