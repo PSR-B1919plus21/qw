@@ -2527,8 +2527,8 @@ function update_monster_array()
                   or (view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
          		      or (view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
          		      or (view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		      or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
-                  or (view.feature_at(x-dir_x,y-dir_y) == "floor" and m:name() == 'electric eel'))
+         		      or (view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
+                  --or (view.feature_at(x-dir_x,y-dir_y) == "floor" and m:name() == 'electric eel'))
         and m:attitude() < 1 then
  
         threat_level = m:threat()
@@ -7275,6 +7275,8 @@ end
 function plan_full_inventory_panic()
   if FULL_INVENTORY_PANIC and free_inventory_slots() == 0 then
     panic("Inventory is full!")
+  elseif you.status():find("zot") then
+    panic("ZOT IS WATCHING!")
   else
     return false
   end
