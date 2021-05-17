@@ -212,7 +212,7 @@ local prev_hatch_y
 
 local risk_scale = 1.0 --hackety
 
-local viewing_oklob = false --hackety
+local viewing_oklob = 0 --hackety
 
 -- hackety hack
 local safe_x = 0
@@ -2442,7 +2442,7 @@ function initialize_monster_array()
 end
 
 function update_monster_array()
-  viewing_oklob = false
+  viewing_oklob = 0
   local x,y,i,j
   enemy_list = {}
   --c_persist.mlist = {}
@@ -2482,7 +2482,10 @@ function update_monster_array()
         --if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") then
         --  travel.set_exclude(x,y,LOS)
         --end
-        viewing_oklob = true
+        viewing_oklob = viewing_oklob + 1
+        if not feat_is_upstairs(view.feature_at(0,0)) and not where:find("Zot") and viewing_oklob > 3 then
+          travel.set_exclude(x,y,LOS)
+        end
       end
       if is_candidate_for_attack(x, y) then
         --monster_last = m -- hackety hack
