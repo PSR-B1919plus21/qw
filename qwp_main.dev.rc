@@ -4338,6 +4338,9 @@ function plan_coward_step()
     or (feat:find("sealed_stairs_up") and where == "Vaults:5") then
     return false
   end
+  if viewing_oklob and viewing_oklob == n_range_threats and where == "Swamp:4" then
+    return false
+  end
   if tactical_reason == "hiding" or tactical_reason == "stealth" then
     if tactical_reason == "hiding" then
       hiding_turn_count = you.turns()
@@ -4381,6 +4384,9 @@ function plan_flee_step()
     or (feat:find("sealed_stairs_up") and where == "Vaults:5") then
     return false
   end
+  if viewing_oklob and viewing_oklob == n_range_threats and where == "Swamp:4" then
+    return false
+  end
   if tactical_reason == "fleeing" then
     if SPAM then
       say("FLEEEEING.")
@@ -4404,7 +4410,7 @@ function plan_threat_flee_step()
     --end
   end
 
-  if (hp_is_low(40) and threat_total > 10)
+  if false --(hp_is_low(40) and threat_total > 10)
     or (hp_is_low(20) and threat_total > 5)
     or (hp_is_low(10) and threat_total > 1) then
     if you.race() == "Deep Dwarf" then
@@ -4417,7 +4423,7 @@ function plan_threat_flee_step()
     end
   end
 
-  if (hp_is_low(60) and threat_total > 20 and where ~= "Vaults:5")
+  if false --(hp_is_low(60) and threat_total > 20 and where ~= "Vaults:5")
     or hp_is_low(40) and threat_total > 10 
     or hp_is_low(20) and threat_total > 5 then
     if can_teleport() then
@@ -4432,7 +4438,7 @@ function plan_threat_flee_step()
     end
   end
 
-  if (hp_is_low(60) and threat_total > 20)
+  if false --(hp_is_low(60) and threat_total > 20)
     or (hp_is_low(40) and threat_total > 10)
     or (hp_is_low(20) and threat_total > 5) then
     if you.race() == "Deep Dwarf" then
@@ -4562,6 +4568,9 @@ function plan_threat_flee_step()
 end
 
 function plan_other_step()
+  if viewing_oklob and viewing_oklob == n_range_threats and where == "Swamp:4" then
+    return false
+  end
   if tactical_reason ~= "none" then
     say("Stepping ~*~*~tactically~*~*~ (" .. tactical_reason .. ").")
     if you.xl() < 14 then
