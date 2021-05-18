@@ -2548,10 +2548,10 @@ function update_monster_array()
                   --or (m:is_stationary() and you.xl() > 20)
                   --or (view.feature_at(0,0) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
          		      --or (view.feature_at(0,0) == "lava" and view.feature_at(x,y) ~= "lava")
-                  or (you.status("fly") and view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		      or (you.status("fly") and view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
-         		      or (you.status("fly") and view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
-         		      or (you.status("fly") and view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
+                  or (you.status("flying") and view.feature_at(dir_x,dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
+         		      or (you.status("flying") and view.feature_at(dir_x,dir_y) == "lava" and view.feature_at(x,y) ~= "lava")
+         		      or (you.status("flying") and view.feature_at(x-dir_x,y-dir_y) == "deep_water" and view.feature_at(x,y) ~= "deep_water")
+         		      or (you.status("flying") and view.feature_at(x-dir_x,y-dir_y) == "lava" and view.feature_at(x,y) ~= "lava"))
         and m:attitude() < 1 then
  
         threat_level = m:threat()
@@ -3852,8 +3852,8 @@ function plan_cancellation()
   if not danger or not can_drink() or you.teleporting() then
     return false
   end
-  if you.petrifying() or you.corrosion() >= 4
-     or you.corrosion() >= 3 and hp_is_low(70) then
+  if you.petrifying() or you.corrosion() >= 4 or (you.transform() == "pig" and hp_is_low(70)) --hackety hack
+     or (you.corrosion() >= 3 and hp_is_low(70)) then
     if drink_by_name("cancellation") then
       return true
     end
@@ -4098,9 +4098,9 @@ function assess_square(x,y)
   -- adjacent monsters
   a.adjacent = count_nearby(x,y,1)
   -- hackety hack floor move
-  a.adj_floors = count_floors(x,y,1)
+  -- a.adj_floors = count_floors(x,y,1)
   -- hackety hack
-  a.safe_dist = abs(x-safe_x)+abs(y-safe_y)
+  -- a.safe_dist = abs(x-safe_x)+abs(y-safe_y)
   -- wandering or sleeping monsters
   a.unalert = count_unalert(x,y,LOS)
   -- ranged monsters at distance <= 5, not necessarily visible
@@ -4157,18 +4157,24 @@ function step_reason(a1,a2)
          and reason_to_rest(90)
          and (no_spells or starting_spell() ~= "Summon Small Mammal") then
     return "fleeing"
+  elseif you.xl() < 10
+    and (not a1.near_ally) 
+    and a2.longranged == 0 
+    and a2.adjacent == 0 
+    and a1.longranged > 0 then
+    return "hiding"
   elseif (a2.stair_closer < a1.stair_closer) 
     and (not a1.near_ally) 
     and a2.longranged == 0 
     and a2.adjacent == 0 
     and a1.longranged > 0 then
     return "hiding"
-  elseif (a2.stair_closer <= a1.stair_closer) and you.depth_fraction() < 99
-    and (not a1.near_ally) 
-    and a2.longranged == 0 
-    and a2.adjacent == 0 
-    and a1.longranged > 0 then
-    return "hiding"
+  --elseif (a2.stair_closer <= a1.stair_closer) and you.depth_fraction() < 99
+  --  and (not a1.near_ally) 
+  --  and a2.longranged == 0 
+  --  and a2.adjacent == 0 
+  --  and a1.longranged > 0 then
+  --  return "hiding"
   --elseif (not a1.near_ally) and a2.ranged == 0 and a2.adjacent == 0 and a2.unalert < a1.unalert then
   --  return "stealth"
   elseif not a1.cloud_safe then
@@ -4187,12 +4193,15 @@ function step_reason(a1,a2)
   elseif a1.adjacent == 1 then  
     return false
   elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) 
-    and (a2.stair_closer < a1.stair_closer) then
+    and (you.xl() <= 10) then
     return "outnumbered"
   elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) 
-    and (a2.stair_closer <= a1.stair_closer)
-    and you.depth_fraction() < 99 then
+    and (a2.stair_closer < a1.stair_closer) then
     return "outnumbered"
+  --elseif (a2.adjacent + a2.ranged <= a1.adjacent + a1.ranged - 2) 
+  --  and (a2.stair_closer <= a1.stair_closer)
+  --  and you.depth_fraction() < 99 then
+  --  return "outnumbered"
   else
     return false
   end
@@ -4340,29 +4349,29 @@ function plan_coward_step()
     return true
   end
   --hackety hack
-  step_x = 0
-  step_y = 0
-  m_adj = 0
-  n_adj = 0
-  for x = -1,1 do
-    for y = -1,1 do
-      if (x ~= 0 or y ~= 0) then
-        if monster.get_monster_at(x,y) ~= nil then
-          m_adj = m_adj + 1
-          --say("Found mons " .. x .. y)
-        elseif not is_solid(x,y) then
-          n_adj = n_adj + 1
-          step_x = x
-          step_y = y
-          --say("Found empty " .. x .. y)
-        end
-      end
-    end
-  end
-  if m_adj > 1 and n_adj == 0 and (step_x ~= 0 or step_x ~= 0) then
-    magic(delta_to_vi(step_x, step_y))
-    return true
-  end
+  --step_x = 0
+  --step_y = 0
+  --m_adj = 0
+  --n_adj = 0
+  --for x = -1,1 do
+  --  for y = -1,1 do
+  --    if (x ~= 0 or y ~= 0) then
+  --      if monster.get_monster_at(x,y) ~= nil then
+  --        m_adj = m_adj + 1
+  --        --say("Found mons " .. x .. y)
+  --      elseif not is_solid(x,y) then
+  --        n_adj = n_adj + 1
+  --        step_x = x
+  --        step_y = y
+  --        --say("Found empty " .. x .. y)
+  --      end
+  --    end
+  --  end
+  --end
+  --if m_adj > 1 and n_adj == 0 and (step_x ~= 0 or step_x ~= 0) then
+  --  magic(delta_to_vi(step_x, step_y))
+  --  return true
+  --end
   return false
 end
 
@@ -4388,7 +4397,7 @@ end
 function plan_threat_flee_step()
 
   if you.transform() == "pig" then
-    panic("IM A PIG!")
+    say("IM A PIG!")
     --r = drink_by_name("lignification")
     --if r then
     --  return r
@@ -4455,6 +4464,10 @@ function plan_threat_flee_step()
     return false
   end
 
+  if viewing_oklob and viewing_oklob == n_range_threats then
+    return false
+  end
+
   -- hackety hack
   -- theres a problem: the closest stair may not have a clear path but the farther stair does
   best_dist = 10000
@@ -4471,7 +4484,7 @@ function plan_threat_flee_step()
     cur_dist = 10000
   end
 
-  if (you.turns() < last_flee_turn+10) or (viewing_oklob >= 3 and where:find("Lair"))
+  if (you.turns() < last_flee_turn+10) --or (viewing_oklob > 1 and where:find("Lair"))
     or (threat_total == 0 and hp_is_low(50) and cur_dist <= 10)
     or (threat_melee_total > 2 and threat_range < 1
        and (threat_melee_dist > 1 or threat_melee_speed <= 1))
@@ -4511,6 +4524,10 @@ function plan_threat_flee_step()
               best_d = d
               best_x = x
               best_y = y
+            --elseif d == best_d and crawl.random2(0,2) == 1 then
+            --  best_d = d
+            --  best_x = x
+            --  best_y = y
             end
           end
         end  
@@ -4531,7 +4548,7 @@ function plan_threat_flee_step()
     end
   end
   if threat_total > 20 
-    and hp_is_low(40) then
+    and hp_is_low(20) then
     if view.cloud_at(0,0) == nil then
       r = haste()
       if r then
@@ -4547,6 +4564,9 @@ end
 function plan_other_step()
   if tactical_reason ~= "none" then
     say("Stepping ~*~*~tactically~*~*~ (" .. tactical_reason .. ").")
+    if you.xl() < 14 then
+      travel.set_exclude(0,0,0)
+    end
     magic(tactical_step .. "Y")
     return true
   end
@@ -4834,7 +4854,7 @@ function want_to_teleport()
   if where:find("Zig") then
     return false
   end
-  if you.transform():find("pig") then --hackety hack
+  if you.transform():find("pig") and threat_total > 2 then --hackety hack
     return true
   end
   if count_hostile_sgd(LOS) > 0 and you.xl() < 21 then
@@ -6474,6 +6494,12 @@ function plan_open_runed_doors()
   for x = -1,1 do
     for y = -1,1 do
       if (view.feature_at(x,y) == "runed_clear_door") or (view.feature_at(x,y) == "runed_door") then
+        --if where ~= "Pan" 
+        --  and (where ~= "Elf:2")
+        --  and (where ~= "Depths:3" or not PAN_RUNE) then
+        --  travel.set_exclude(0,0,0)
+        --  return false
+        --end
         magic(delta_to_vi(x,y) .. "O")
         return true
       end
@@ -9011,7 +9037,7 @@ function ttt()
   say("threat pole:" .. threat_pole)
 
   say("GAME STATUS: " .. game_status)
-  say("FLYING STATUS: " .. tostring(you.status("fly")))
+  say("FLYING STATUS: " .. tostring(you.status("flying")))
   say("WHERE: " .. where)
   if travel_destination ~= nil then
     say("DEST: " .. travel_destination)
